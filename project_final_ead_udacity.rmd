@@ -1,0 +1,125 @@
+TÍTULO por SEU_NOME_AQUI
+========================================================
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+# Carregue aqui todos os pacotes utilizados 
+# na sua análise realizada neste arquivo fonte.
+
+# Note que o parâmetro "echo" foi definido como FALSE neste código.
+# Isso previne que o código apresente resultados formatados em HTML.
+# Você deve definir echo=FALSE para todos os blocos de código no seu arquivo.
+
+
+library(ggplot2)
+library(GGally)
+```
+
+```{r echo=FALSE, Load_the_Data}
+# Carregamento dos dados
+# Origem dos dados: https://docs.google.com/document/d/1jX3vzkFuFOBGUrlcQ_Lc3jEZVlC_2yyk3tFIbwAI5GQ/edit
+# Conjunto de Dados: Red Wine Quality
+
+red_wine_quality <- read.csv('data/wineQualityReds.csv')
+```
+
+# Seção de Gráficos Univariados
+```{r echo=FALSE, message=FALSE, warning=FALSE, Univariate_Plots}
+dim(red_wine_quality)
+names(red_wine_quality)
+str(red_wine_quality)
+summary(red_wine_quality)
+
+
+ggpairs(red_wine_quality)
+
+set.seed(2)
+modelo = kmeans(red_wine_quality, centers = 4)
+plot(red_wine_quality, col=modelo$cluster, pch=21, cex=1)
+points(modelo$centers, col = 4:1, bg=1:4, pch = 24, cex =1, lwd = 1)
+
+
+
+plot(red_wine_quality, col=kmeans(x=red_wine_quality, centers=10))
+plot(red_wine_quality)
+# principal analise:
+# Quais propriedades químicas influenciam a qualidade dos vinhos tintos?
+
+
+```
+
+# Análise Univariada
+
+### Qual é a estrutura do conjunto de dados?
+
+### Quais são os principais atributos de interesse deste conjunto de dados?
+
+### Quais outros atributos você acha que podem lhe auxiliar na investigação destes atributos de interesse?
+
+### Você criou novas variáveis a partir dos atributos existentes no conjunto de dados?
+
+### Dos atributos investigados, distribuições incomuns foram encontradas? Você aplicou operações nos dados para limpá-los, ajustá-los ou mudar a forma dos dados? Se sim, por quê?
+
+
+
+# Seção de Gráficos Bivariados
+```{r echo=FALSE, Bivariate_Plots}
+
+```
+
+# Análise Bivariada
+
+### Discuta sobre alguns dos relacionamentos observados nesta parte da investigação. Como os atributos de interesse variaram no conjunto de dados?
+
+### Você observou algum relacionamento interessante entre os outros atributos (os que não são de interesse)?
+
+### Qual foi o relacionamento mais forte encontrado?
+
+
+
+
+# Seção de Gráficos Multivariados
+
+```{r echo=FALSE, Multivariate_Plots}
+
+```
+
+# Análise Multivariada
+
+### Discuta sobre os relacionamentos observados nesta parte da investigação. Quais atributos que fortaleceram os demais na observação das variáveis de interesse?
+
+### Interações surpreendentes e/ou interessantes foram encontradas entre os atributos?
+
+### OPCIONAL: Modelos foram criados usando este conjunto de dados? Discuta sobre os pontos fortes e as limitações do seu modelo.
+
+------
+
+# Gráficos Finais e Sumário
+
+### Primeiro Gráfico
+```{r echo=FALSE, Plot_One}
+
+```
+
+### Descrição do Primeiro Gráfico
+
+
+### Segundo Gráfico
+```{r echo=FALSE, Plot_Two}
+
+```
+
+### Descrição do Segundo Gráfico
+
+
+### Terceiro Gráfico
+```{r echo=FALSE, Plot_Three}
+
+```
+
+### Descrição do Terceiro Gráfico
+
+------
+
+# Reflexão
+
+
