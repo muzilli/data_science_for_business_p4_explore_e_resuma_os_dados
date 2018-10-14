@@ -122,8 +122,6 @@ Conjunto de Dados:
 ```{r Load_the_Data}
 # Carregamento dos dados
 red_wine_quality <- read.csv('data/wineQualityReds.csv')
-
-
 ```
 
 ```{r global_new_variables}
@@ -144,8 +142,13 @@ labels_graphs_variables <- c(
   "Sulfatos (Sulfato de potássio - g/dm3)",
   "Álcool (% por volume)",
   "Qualidade (Entre 0 (muito ruim) e 10 (muito bom))",
-  "Total de Ácidez" 
+  "Total de Acidez" 
 )
+
+#label default para graficos para definir quantidade de registros para nao para otimizar memoria com string
+lbl_qtd_registros <- "Quantidade de registros"
+lbl_qualidade_cls <- "Qualidade (Bom/Ruim)"
+
 
 names(labels_graphs_variables) <- colnames(red_wine_quality)
 ```
@@ -165,10 +168,15 @@ names(labels_graphs_variables) <- colnames(red_wine_quality)
 # then plot 1 will go in the upper left, 2 will go in the upper right, and
 # 3 will go all the way across the bottom.
 #
-multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+multiplot <- function(..., 
+                      plotlist=NULL, 
+                      file, 
+                      cols=1, 
+                      layout=NULL) {
 
   # Make a list from the ... arguments and plotlist
-  plots <- c(list(...), plotlist)
+  plots <- c(list(...), 
+             plotlist)
 
   numPlots = length(plots)
 
@@ -177,13 +185,14 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
     # Make the panel
     # ncol: Number of columns of plots
     # nrow: Number of rows needed, calculated from # of cols
-    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
-                    ncol = cols, nrow = ceiling(numPlots/cols))
+    layout <- matrix(seq(1, 
+                         cols * ceiling(numPlots/cols)),
+                      ncol = cols, 
+                      nrow = ceiling(numPlots/cols))
   }
 
  if (numPlots == 1) {
     print(plots[[1]])
-
   } else {
     # Set up the page
     grid.newpage()
@@ -193,13 +202,18 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
     for (i in 1:numPlots) {
       # Get the i,j matrix positions of the regions that contain this subplot
       matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
-      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
-                                      layout.pos.col = matchidx$col)
+      print(
+        plots[[i]], vp = 
+            viewport(
+              layout.pos.row = 
+                matchidx$row,layout.pos.col = matchidx$col
+              )
             )
     }
   }
 }
 
+# Buscar o nome da label para o grafico apartir da chave 
 get_graph_label <- function(key){
   label <- key
   
@@ -211,7 +225,9 @@ get_graph_label <- function(key){
 }
 
 # Gerar todos os gráficos para visualizacao de um dataframe (utilizar lapply para este funcao)
-generate_graph_univariate_by_dataframe <- function(data, key_x, ylabel = "Quantidade de registros"){
+generate_graph_univariate_by_dataframe <- function(data, 
+                                                   key_x, 
+                                                   ylabel = lbl_qtd_registros){
   xlabel <- get_graph_label(key_x)
   
   ggplot( data = data, aes( x = data[[key_x]]) ) +
@@ -221,7 +237,9 @@ generate_graph_univariate_by_dataframe <- function(data, key_x, ylabel = "Quanti
 }
 
 # Gerar todos os gráficos para visualizacao de um dataframe (utilizar lapply para este funcao)
-generate_graph_univariate_boxplot_by_dataframe <- function(data, key_x, ylabel = "Quantidade de registros"){
+generate_graph_univariate_boxplot_by_dataframe <- function(data, 
+                                                           key_x, 
+                                                           ylabel = lbl_qtd_registros){
   xlabel <- get_graph_label(key_x)
   
   ggplot(data, aes(x = data[[key_x]], y = ..count../sum(..count..))) +
@@ -231,7 +249,9 @@ generate_graph_univariate_boxplot_by_dataframe <- function(data, key_x, ylabel =
 }
 
 # Gerar todos os gráficos para visualizacao de um dataframe (utilizar lapply para este funcao)
-generate_graph_bivariate_x_as_quality_by_dataframe <- function(data, key_y, ylabel = "Número de Observações"){
+generate_graph_bivariate_x_as_quality_by_dataframe <- function(data, 
+                                                               key_y, 
+                                                               ylabel = lbl_qtd_registros){
   if (key_y != 'quality') {
     
     xlabel <- get_graph_label('quality')
@@ -247,7 +267,9 @@ generate_graph_bivariate_x_as_quality_by_dataframe <- function(data, key_y, ylab
 }
 
 ```
+
 # Seção de Gráficos Univariados
+
 ```{r Univariate_Plots_dimensoes}
 dim(red_wine_quality)
 ```
@@ -269,19 +291,28 @@ red_wine_quality %>%
   filter(is.na(residual.sugar) | residual.sugar < 2.7) %>%
   summarise(n())
 
+# Criar 2 novas variaveis 
 red_wine_quality <-
   red_wine_quality %>%
     mutate(
       quality.classification = ifelse(quality >= 6,1,0),
       total.acidity = fixed.acidity + volatile.acidity + citric.acid
       )
-  
-red_wine_quality$quality.factor <- ordered(red_wine_quality$quality,
-                                levels = c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
+
+
+red_wine_quality$quality.classification <- 
+  factor(red_wine_quality$quality.classification,
+                         levels = c(0,1) ,
+                         labels = c("Ruim", "Bom"))
+red_wine_quality$quality.factor <- 
+  ordered(red_wine_quality$quality,levels = c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
 ```
 
 ##### Observações do Resumo
-- O conjunto de dados possui 1599 observações com 13 colunas/atributos, sendo 1 atributo X sendo o índice ou Id da amostra, 11 atributos físico-químicas e uma variável de qualidade de saída medindo o escore de qualidade dado por especialistas de vinho.
+
+- O conjunto de dados possui 1599 observações com 13 colunas/atributos, sendo 1 atributo X sendo o 
+índice ou Id da amostra, 11 atributos físico-químicas e uma variável de qualidade de saída medindo o 
+escore de qualidade dado por especialistas de vinho.
 - Existe uma grande variedade de dioxido de enxofre (livre e total) nas amostras.
 - O teor alcólico varia de 8.40 a 14.90, com uma mediana de 10.20, para as amostras no conjunto de dados.
 - A qualidade das amostras varia de 3 a 8, sendo 6 a mediana.
@@ -293,31 +324,40 @@ red_wine_quality$quality.factor <- ordered(red_wine_quality$quality,
 #### Geração de gráficos
 
 ```{r fig.height = 25, Univariate_Plots}
+# numero de plots para 12
 num_plots <- 12
 
 # cria variavel com todos os graficos
-plots_variables <- lapply(colnames(red_wine_quality)[0:num_plots], generate_graph_univariate_by_dataframe, data = red_wine_quality)
+plots_variables <- lapply(colnames(red_wine_quality)[0:num_plots], 
+                          generate_graph_univariate_by_dataframe, 
+                          data = red_wine_quality)
 
 # cria variavel com todos os graficos
-plots_variables_boxplot <- lapply(colnames(red_wine_quality)[0:num_plots], generate_graph_univariate_boxplot_by_dataframe, data = red_wine_quality)
+plots_variables_boxplot <- lapply(colnames(red_wine_quality)[0:num_plots], 
+                                  generate_graph_univariate_boxplot_by_dataframe, 
+                                  data = red_wine_quality)
 
 # Remover itens NULL da lista caso exista
 plots_variables <- plots_variables[ lapply(plots_variables, length) != 0 ] 
 plots_variables_boxplot <- plots_variables_boxplot[ lapply(plots_variables_boxplot, length) != 0 ] 
 ```
 
-
 ##### Análise inicial de Qualidade
 
-```{r fig.height = 4, Univariate_Plots_qualidade}
-p12 <- plots_variables[[12]]  + scale_x_continuous(breaks = seq(3,8,1))
+> Gráfico de Qualidade
+
+```{r fig.height = 5, Univariate_Plots_qualidade}
+p12 <- plots_variables[[12]] + scale_x_continuous(breaks = seq(3,8,1))
+
 p12.log10 <- p12 + scale_y_log10() 
 
 multiplot(p12, p12.log10, cols = 2)
 
 paste("Summary de Qualidade")
 summary(red_wine_quality$quality)
+```
 
+```{r fig.height = 7, Univariate_Plots_qualidade_summarization}
 paste("Summary de Qualidade: Agrupando qualidade por quantidade")
 red_wine_quality %>%
   group_by(quality) %>% 
@@ -328,107 +368,158 @@ red_wine_quality %>%
   group_by(quality.classification) %>% 
     summarise(n())
 
-
 ggplot(red_wine_quality,aes(x=quality.classification)) +
   geom_bar(stat = "count",position = "dodge")+
-  scale_x_continuous(breaks = seq(0,1,1))+
+  xlab(lbl_qualidade_cls) +
+  ylab(lbl_qtd_registros) +
   ggtitle("Quantidade de Vinhos Bons e Ruins")
 ```
 
-> Conforme verificado nos dados referênte a qualidade do vinho a maioria dos vinhos são de qualidade normal pois a maior parte das observações estão entre 5 e 7, e a mediana é 6, dessa forma posso rotular os vinhos de forma a criar uma nova variável para auxiliar na próximas análises, devido a concentração dos dados estarem entre 5 e 6 será criado uma nova variavel __quality.classification__, onde _'Ruim'_ será para vinhos de baixa qualidade onde possuem qualidade abaixo de 6 e _'Bom'_ de boa qualidade com qualidade superior ou igual à 6.
+> Conforme verificado nos dados referênte a qualidade do vinho a maioria dos vinhos são de qualidade normal pois a 
+maior parte das observações estão entre 5 e 7, e a mediana é 6, dessa forma posso rotular os vinhos de forma a criar 
+uma nova variável para auxiliar na próximas análises, devido a concentração dos dados estarem entre 5 e 6 será criado 
+uma nova variavel __quality.classification__, onde _'Ruim'_ será para vinhos de baixa qualidade onde possuem qualidade 
+abaixo de 6 e _'Bom'_ de boa qualidade com qualidade superior ou igual à 6.
 
 > É possível ver com a nova classificação que possui mais vinhos de boa qualidade do que de baixa qualidade
 
 ##### Análise inicial de Acidez
 
-```{r fig.height = 8, Univariate_Plots_acidez}
+> Gráfico de Acidez Fixa
+
+```{r fig.height = 5, Univariate_Plots_acidez_fixa}
 p1 <- plots_variables[[1]] + scale_x_continuous(breaks = seq(3,16,1))
-p2 <- plots_variables[[2]] + scale_x_continuous(breaks =seq(0.1,1.6,0.1))
-
 p1.log10 <- p1 + scale_y_log10() 
-p2.log10 <- p2 + scale_y_log10() 
 
-multiplot(p1, p2, p1.log10, p2.log10, cols = 2)
+multiplot(p1, p1.log10, cols = 2)
 
 paste("Summary de Acidez fixa")
 summary(red_wine_quality$fixed.acidity)
+```
+
+> Gráfico de Acidez Volátil
+
+```{r fig.height = 5, Univariate_Plots_acidez_volatil}
+p2 <- plots_variables[[2]] + scale_x_continuous(breaks =seq(0.1,1.6,0.1))
+p2.log10 <- p2 + scale_y_log10() 
+
+multiplot(p2, p2.log10, cols = 2)
 
 paste("Summary de Acidez Volátil")
 summary(red_wine_quality$volatile.acidity)
 ```
 
-> Conforme observação do autor do dataset na descrição de atributo quanto maior o a acidez volátil mais desagradável é o vinho, sendo assim o dado de acidez volátil é um dado que pode impactar a qualidade do vinho.
+
+> Conforme observação do autor do dataset na descrição de atributo quanto maior o a acidez volátil mais desagradável é o 
+vinho, sendo assim o dado de acidez volátil é um dado que pode impactar a qualidade do vinho.
 
 > Com base no [Clube do Vinho](https://www.clubedosvinhos.com.br/acidez-no-vinho-nao-tema/) 
-|Vinhos tintos e brancos tem resultados diferentes frente a acidez. Tintos mais ácidos são mais elegantes, enquanto brancos são mais refrescantes.
+|Vinhos tintos e brancos tem resultados diferentes frente a acidez. Tintos mais ácidos são mais elegantes, enquanto brancos 
+são mais refrescantes.
 
 > Com base na [Revista Adega](https://revistaadega.uol.com.br/artigo/o-alcool-e-a-acidez_6055.html)
-|O álcool e acidez são elementos chave do vinho de qualidade. O seu papel é tão fundamental que própria decisão de iniciar vindima é condicionada pelo equilíbrio entre açúcares (que se tornarão álcool após fermentação) e acidez existentes nas uvas.
+O álcool e acidez são elementos chave do vinho de qualidade. O seu papel é tão fundamental que própria decisão de iniciar 
+vindima é condicionada pelo equilíbrio entre açúcares (que se tornarão álcool após fermentação) e acidez existentes nas uvas.
 
-> Com base nos gráficos é possível verificar que a acidez está equilibrada entre as observações, pois a maior parte das observações estão entre o primeiro quartil e terceiro quartil, da acidez fixa estão entre o mínimo de 7.10 e o terceiro quartil com 9.20, e a acidez volátil está entre o mínimo de 0.39 e o terceiro quartil de 0,64.
+> Com base nos gráficos é possível verificar que a acidez está equilibrada entre as observações, pois a maior parte das observações 
+estão entre o primeiro quartil e terceiro quartil, da acidez fixa estão entre o mínimo de 7.10 e o terceiro quartil com 9.20, 
+e a acidez volátil está entre o mínimo de 0.39 e o terceiro quartil de 0,64.
 
-> Ambas as distribuições acidez fixa e acidez volátil possuem caudas positivas longas, e suas médias são mais alta do que suas medianas, e tornam a mediana uma melhor medida do valor central. Além disso, a distribuição de acidez volátil tem pequena distribuição bimodal.
+> Ambas as distribuições acidez fixa e acidez volátil possuem caudas positivas longas, e suas médias são mais alta do que suas medianas, 
+e tornam a mediana uma melhor medida do valor central. Além disso, a distribuição de acidez volátil tem pequena distribuição bimodal.
 
 
 ##### Análise inicial dados que podem ajustar o sabor
-###### Açucar Residual, Cloreto de sódio e Ácido Cítrico
+###### Açucar Residual, Cloreto e Ácido Cítrico
 
-```{r fig.height = 12, Univariate_Plots_acido_citrico_acucar_cloreto}
-p3 <- plots_variables[[3]] + scale_x_continuous(breaks = seq(0,1,.1))
+> Gráfico de Açucar Residual
+
+```{r fig.height = 5, Univariate_Plots_acido_acucar}
 p4 <- plots_variables[[4]] + scale_x_continuous(breaks = seq(0,16,1))
-p5 <- plots_variables[[5]] + scale_x_continuous(breaks = seq(0,0.65,0.05))
-
-p3.log10 <- p3 + scale_y_log10() 
 p4.log10 <- p4 + scale_y_log10() 
-p5.log10 <- p5 + scale_y_log10() 
 
-multiplot(p3, p4, p5, p3.log10, p4.log10, p5.log10, cols = 2)
-
-paste("Summary de Acido Cítrico")
-summary(red_wine_quality$citric.acid)
+multiplot(p4, p4.log10, cols = 2)
 
 paste("Summary de Açucar Residual")
 summary(red_wine_quality$residual.sugar)
+```
+
+> Gráfico de Cloretos
+
+```{r fig.height = 5, Univariate_Plots_acido_cloreto}
+p5 <- plots_variables[[5]] + scale_x_continuous(breaks = seq(0,0.65,0.05))
+p5.log10 <- p5 + scale_y_log10() 
+
+multiplot(p5,p5.log10, cols = 2)
 
 paste("Summary de Cloretos")
 summary(red_wine_quality$chlorides)
+```
+
+> Gráfico de Ácido Cítrico
+
+```{r fig.height = 5, Univariate_Plots_acido_citrico}
+p3 <- plots_variables[[3]] + scale_x_continuous(breaks = seq(0,1,.1))
+p3.log10 <- p3 + scale_y_log10() 
+
+multiplot(p3, p3.log10,cols = 2)
+
+paste("Summary de Acido Cítrico")
+summary(red_wine_quality$citric.acid)
 ```
 
 > Os parametros de ácido cítrico, açucar residual e cloreto, indicam a saborização do vinho, se será mais salgado, doce ou com refrescante por sabor cítrico.
 
 > Observando os gráficos e a sumariazação dos dados, de "saborização", as observações estão no centro dos dados entre os o primeiro e terceiro quartil. 
 
-> O ácido cítrico parece uma distribuição bimodal, e aparenta poucos valores discrepantes pelo gráfico, 50% dos valores estão entre 0.090 e 0.420 e a media está em 0.260
+> O ácido cítrico parece uma distribuição bimodal, e aparenta poucos valores discrepantes pelo gráfico, 50% dos valores estão entre 0.090 
+e 0.420 e a media está em 0.260
 
 > O açúcar residual possui a maior concentração dos dados menor que 2.6, tendo um pico aproximadamente na mediana 2.2
 
 > Os cloretos possuem o mesmo comportamento que que o açucar residual, onde 75% dos dados estao entre 0.012 e 0.09
 
 ##### Análise inicial dados que podem ajustar a oxidação e o controle microbial
-###### Dióxido de enxofre livre e total e Sulfato de potácio
+###### Dióxido de enxofre livre e total e Sulfato de potássio
 
-```{r fig.height = 12, Univariate_Plots_dioxido_enxofre_sulfato}
+> Gráfico de Dióxido de enxofre livre
+
+```{r fig.height = 5, Univariate_Plots_enxofre_livre}
 p6 <- plots_variables[[6]] + scale_x_continuous(breaks = seq(0,72,5))
-p7 <- plots_variables[[7]] + scale_x_continuous(breaks = seq(0,300,15))
-p10 <- plots_variables[[10]] + scale_x_continuous(breaks = seq(0,2,0.1))
-
 p6.log10 <- p6 + scale_y_log10() 
-p7.log10 <- p7 + scale_y_log10() 
-p10.log10 <- p10 + scale_y_log10() 
 
-multiplot(p6, p7, p10, p6.log10, p7.log10, p10.log10, cols = 2)
+multiplot(p6, p6.log10, cols = 2)
 
 paste("Summary de Dióxido de Enxofre Livre")
 summary(red_wine_quality$free.sulfur.dioxide)
+```
+
+> Gráfico de Dióxido de enxofre total
+
+```{r fig.height = 5, Univariate_Plots_enxofre_total}
+p7 <- plots_variables[[7]] + scale_x_continuous(breaks = seq(0,300,15))
+p7.log10 <- p7 + scale_y_log10() 
+
+multiplot(p7, p7.log10, cols = 2)
 
 paste("Summary de Dióxido de Enxofre Total")
 summary(red_wine_quality$total.sulfur.dioxide)
+```
+
+> Gráfico de Dióxido de Sulfato de Potássio
+
+```{r fig.height = 5, Univariate_Plots_sulfato}
+p10 <- plots_variables[[10]] + scale_x_continuous(breaks = seq(0,2,0.1))
+p10.log10 <- p10 + scale_y_log10() 
+
+multiplot( p10, p10.log10, cols = 2)
 
 paste("Summary de Sulfatos")
 summary(red_wine_quality$sulphates)
 ```
 
-> Conforme descriçoes do autor para dióxido de enxofre e sulfato de potácio, atuam como antimicrobial e antioxidantes, o dióxido de enxofre total, pode interferir no sabor e no aroma.
+> Conforme descriçoes do autor para dióxido de enxofre e sulfato de potácio, atuam como antimicrobial e antioxidantes, o dióxido de enxofre total, 
+pode interferir no sabor e no aroma.
 
 > O dióxido de enxofre livre segue uma distribuição normal com média proxima de 15.9, com 50% dos dados entre 7 e 21.
 
@@ -436,19 +527,26 @@ summary(red_wine_quality$sulphates)
 
 > A maioria dos valores de sulfatos estão entre 0.3 e 0.7
 
-##### Análise inicial de Densidade e Álcool
+##### Análise inicial de Densidade e Alcool
 
-```{r fig.height = 8, Univariate_Plots_densidade_alcool}
+> Gráfico de Densidade
+
+```{r fig.height = 5, Univariate_Plots_densidade}
 p8 <- plots_variables[[8]]  + scale_x_continuous(breaks = seq(0.900,1.010,0.001))
-p11 <- plots_variables[[11]]  + scale_x_continuous(breaks = seq(8,15,0.5))
-
 p8.log10 <- p8 + scale_y_log10() 
-p11.log10 <- p11 + scale_y_log10() 
-
-multiplot(p8, p11, p8.log10, p11.log10, cols = 2)
+multiplot(p8, p8.log10, cols = 2)
 
 paste("Summary de Densidade")
 summary(red_wine_quality$density)
+```
+
+> Gráfico de Alcool 
+
+```{r fig.height = 5, Univariate_Plots_alcool}
+p11 <- plots_variables[[11]]  + scale_x_continuous(breaks = seq(8,15,0.5))
+p11.log10 <- p11 + scale_y_log10() 
+
+multiplot(p11, p11.log10, cols = 2)
 
 paste("Summary de Alcool")
 summary(red_wine_quality$alcohol)
@@ -458,12 +556,15 @@ summary(red_wine_quality$alcohol)
 
 > A densidade segue uma distribuição normal com média em 0.9967 e mediana de 0.9968
 
-> A distribuição de alcool estão entre mínimo de 8.40 e 14.90, onde  50% das observações estão entre 9.50 e 11.10, a mediana é de 10.20 e a média é de 10.42
+> A distribuição de alcool estão entre mínimo de 8.40 e 14.90, onde  50% das observações estão entre 9.50 e 11.10, a mediana é de 10.20 
+e a média é de 10.42
 
 ##### Análise inicial de pH
 
-```{r fig.height = 4, Univariate_Plots_ph}
-p9 <- plots_variables[[9]]  + scale_x_continuous(breaks = seq(0,14,1))
+> Gráfico de pH
+
+```{r fig.height = 5, Univariate_Plots_ph}
+p9 <- plots_variables[[9]] + scale_x_continuous(breaks = seq(0.00,4.01,0.08))
 p9.log10 <- p9 + scale_y_log10() 
 
 multiplot(p9, p9.log10, cols = 2)
@@ -473,7 +574,8 @@ summary(red_wine_quality$pH)
 ```
 
 > Conforme visto no site [Revista Adega do UOL](https://revistaadega.uol.com.br/artigo/a-importancia-do-ph-no-vinho_1552.html): 
-... Nos vinhos tintos, níveis de pH muito baixos estão acompanhados por uma cor roxa brilhante. Assim que o pH vai aumentando, sombras azuladas aparecerão. Em níveis altos de pH, reflexos marrons ficam evidentes ... 
+... Nos vinhos tintos, níveis de pH muito baixos estão acompanhados por uma cor roxa brilhante. Assim que o pH vai aumentando, 
+sombras azuladas aparecerão. Em níveis altos de pH, reflexos marrons ficam evidentes ... 
 
 > Sendo assim, o pH do vinho pode interferir na cor do vinho
 
@@ -486,32 +588,42 @@ summary(red_wine_quality$pH)
 > O Dataset consiste em 1599 observações e 13 atributos, sendo 1 id, 12 atributos e 1 de saída onde:
 > 1 atributo de identificação de amostra "X" sendo o índice, que foi removida pois não fará parte da análise
 > 11 atributos de entrada ( propriedades químicas) (fixed.acidity, volatile.acidity, citric.acid, residual.sugar, chlorides, free.sulfur.dioxide, total.sulfur.dioxide, density, pH, sulphates, alcohol)
-> 1 atributo de saída __qualidade__ ( qualidade dos vinhos tintos ), a análise princial será entender quais propriedades qímicas influenciam na qualidade dos vinhos tintos.
+> 1 atributo de saída __qualidade__ ( qualidade dos vinhos tintos ), a análise princial será entender quais propriedades qímicas 
+influenciam na qualidade dos vinhos tintos.
 
 | Obs: Todos os atributos são numéricos até mesmo a qualidade que é baseado em uma pontuação de 0 a 10, esse recurso é mais facil de ser fatorado para interpretações durante a análise, será criado uma nova variável
 
 ### Quais são os principais atributos de interesse deste conjunto de dados?
 
-> A principal característica do conjunto de dados é a qualidade, a idéia principal é tentar avaliar a o comportamento dos demais atributos interferem na qualidade do vinho com alguns outros recursos, utilizando análise bivariada e multivariada.
+> A principal característica do conjunto de dados é a qualidade, a idéia principal é tentar avaliar a o comportamento dos demais atributos 
+interferem na qualidade do vinho com alguns outros recursos, utilizando análise bivariada e multivariada.
 
 ### Quais outros atributos você acha que podem lhe auxiliar na investigação destes atributos de interesse?
 
-> Eu aprendi, olhando alguns artigos na internet especializados em vinho como está em itens acima da análise, e até mesmo no [link](https://revistaadega.uol.com.br/artigo/o-alcool-e-a-acidez_6055.html) uma boa qualidade do vinho pode ser dada pelo alcool (alcool), gosto ácido (ácidos) e o dioxido de enxofre total pode influenciar no aroma do vinho, portanto pode modificar a qualidade do vinho, portanto podem ser atributos que podem ser relevantes a serem analisados como acidez fixa, acidez volátil, ácido cítrico, dióxido de enxofre álcool e qualidade.
+> Eu aprendi, olhando alguns artigos na internet especializados em vinho como está em itens acima da análise, e até mesmo no [link](https://revistaadega.uol.com.br/artigo/o-alcool-e-a-acidez_6055.html) uma boa qualidade do vinho pode ser dada pelo alcool (alcool), 
+gosto ácido (ácidos) e o dioxido de enxofre total pode influenciar no aroma do vinho, portanto pode modificar a qualidade do vinho, 
+portanto podem ser atributos que podem ser relevantes a serem analisados como acidez fixa, acidez volátil, ácido cítrico, dióxido de enxofre 
+álcool e qualidade.
 
 ### Você criou novas variáveis a partir dos atributos existentes no conjunto de dados?
 
 > Sim, criei 3 novas variáveis sendo:
 
-> quality.classification para auxiliar em uma classificação mais simples da qualidade de vinhos do especialista se a qualidade for manor que 6 classifiquei como Ruim = 0 e caso seja maior ou igual a 6 classifiquei como Bom = 1
+> quality.classification para auxiliar em uma classificação mais simples da qualidade de vinhos do especialista se a qualidade for manor que 
+6 classifiquei como Ruim = 0 e caso seja maior ou igual a 6 classifiquei como Bom = 1
 
-> total.acidity para auxiliar em um calculo de total de acidez do vinho com o total de ácidos do vinho somando a acidez fixa, a acidez volatil e o ácido citrico
+> total.acidity para auxiliar em um calculo de total de acidez do vinho com o total de ácidos do vinho somando a acidez fixa, a acidez volatil 
+e o ácido citrico
 
 > quality.factor para facilitar em uso em gráficos a qualidade como factor
 
 
-### Dos atributos investigados, distribuições incomuns foram encontradas? Você aplicou operações nos dados para limpá-los, ajustá-los ou mudar a forma dos dados? Se sim, por quê?
+### Dos atributos investigados, distribuições incomuns foram encontradas? 
+###Você aplicou operações nos dados para limpá-los, ajustá-los ou mudar a forma dos dados? 
+###Se sim, por quê?
 
-> O açucar residual e os cloretos possuem distribuições incomuns e com maior propenções a terem outliers, mesmo com análise em log10 aplicado possui áreas sem valor com valores distantes e com cauda longa e bimodal.
+> O açucar residual e os cloretos possuem distribuições incomuns e com maior propenções a terem outliers, 
+mesmo com análise em log10 aplicado possui áreas sem valor com valores distantes e com cauda longa e bimodal.
 
 # Seção de Gráficos Bivariados
 
@@ -550,7 +662,9 @@ pairs.panels(red_wine_quality[, seq(1, 12, 1)], pch=".")
 
 ```{r fig.height = 20, Bivariate_Plots_1}
 # cria variavel com todos os graficos
-plots_variables <- lapply(colnames(red_wine_quality)[0:11], generate_graph_bivariate_x_as_quality_by_dataframe, data = red_wine_quality)
+plots_variables <- lapply(colnames(red_wine_quality)[0:11], 
+                          generate_graph_bivariate_x_as_quality_by_dataframe, 
+                          data = red_wine_quality)
 # Remover itens NULL da lista caso exista
 plots_variables <- plots_variables[ lapply(plots_variables, length) != 0 ] 
 
@@ -589,9 +703,16 @@ pairs.panels(red_wine_quality[, c(7,8,10,11,12,14)], pch=".")
 > O objetivo principal é saber como esses recursos afetam a qualidade do vinho, mas primeiro, para não ver como os outros recursos estão relacionados.
 
 ```{r Bivariate_Plots_alcool_vs_densidade}
-ggplot(aes(x = alcohol, y = density), data = red_wine_quality) +
-  geom_point(color = I('darkblue'),alpha = 0.5, size = 1, position = 'jitter') +
+ggplot(aes(x = alcohol, 
+           y = density), 
+       data = red_wine_quality) +
+  geom_point(color = I('darkblue'),
+             alpha = 0.5, 
+             size = 1, 
+             position = 'jitter') +
   coord_cartesian() +
+  scale_x_continuous(breaks = seq(8,15,0.5)) +
+  scale_y_continuous(breaks = seq(0.00,2.00,.001)) +
   xlab(labels_graphs_variables[11]) +
   ylab(labels_graphs_variables[8]) +
   geom_smooth(method = "lm", se = FALSE) +
@@ -601,10 +722,17 @@ ggplot(aes(x = alcohol, y = density), data = red_wine_quality) +
 > Aqui está uma relação mediana entre o álcool e a densidade do vinho. De fato, a correlação é de -0,5.
 
 ```{r Bivariate_Plots_qualidade_vs_total_acidez}
-ggplot(aes(x = total.acidity, y = quality), data = red_wine_quality) +
-  geom_point(color = I('darkblue'), alpha = 0.5, size = 1, position = 'jitter') +
-  coord_cartesian(xlim = c(quantile(red_wine_quality$total.acidity, .01),
+ggplot(aes(x = total.acidity, y = quality), 
+       data = red_wine_quality) +
+  geom_point(color = I('darkblue'), 
+             alpha = 0.5, 
+             size = 1, 
+             position = 'jitter') +
+  coord_cartesian(xlim = 
+                    c(quantile(red_wine_quality$total.acidity, .01),
                            quantile(red_wine_quality$total.acidity, .99))) +
+  scale_x_continuous(breaks = seq(0,18,.5))+
+  scale_y_continuous(breaks = seq(0,10,1)) +
   xlab(labels_graphs_variables[13]) +
   ylab(labels_graphs_variables[12]) +
   geom_smooth(method = "lm", se = FALSE) +
@@ -614,68 +742,135 @@ ggplot(aes(x = total.acidity, y = quality), data = red_wine_quality) +
 > O valor de correlação para esses pares é 0,1, nenhuma relação pode ser mostrada, vendo o modelo linear dessas características (linha azul) podemos ver quase uma linha horizontal. Isso significa que a inclinação (valor de acidez total) tem muito pouca importância nessa equação.
 
 ```{r Bivariate_Plots_total_acidez_vs_qualidade}
-qplot(total.acidity, data = red_wine_quality, binwidth = .05, fill = quality.factor) +
-  coord_cartesian(xlim = c(quantile(red_wine_quality$total.acidity, .01),
+qplot(total.acidity, 
+      data = red_wine_quality, 
+      binwidth = .1, 
+      fill = quality.factor) +
+  coord_cartesian(xlim = 
+                    c(quantile(red_wine_quality$total.acidity, .01),
                            quantile(red_wine_quality$total.acidity, .99))) +
+  scale_x_continuous(breaks = seq(0,18,.5)) +
+  scale_y_continuous(breaks = seq(0,55,5)) +
   labs(fill = "Qualidade") +
   xlab(labels_graphs_variables[13]) +
+  ylab(lbl_qtd_registros) +
   guides(fill = guide_legend(reverse = T))
+
 with(red_wine_quality, by(total.acidity, quality, summary))
 with(red_wine_quality, by(total.acidity, quality, length))
 ```
 
+```{r Bivariate_Plots_acidez_citrica_vs_acidez_volatil}
+ggplot(aes(x = citric.acid, y = volatile.acidity), 
+       data = red_wine_quality) +
+  geom_point(color = I('darkblue'), 
+             alpha = 0.5, 
+             size = 1, 
+             position = 'jitter') +
+  coord_cartesian(xlim = 
+                    c(quantile(red_wine_quality$citric.acid, .01),
+                           quantile(red_wine_quality$citric.acid, .99))) +
+  scale_y_continuous(breaks = seq(0,2,0.1)) +
+  xlab(labels_graphs_variables[3]) +
+  ylab(labels_graphs_variables[2]) +
+  scale_x_continuous(breaks = seq(0,1,.05)) +
+  geom_smooth(method = "lm", se = FALSE) +
+  ggtitle('Acido cítrico pela Acidez volátil')
+```
 
-```{r Bivariate_Plots_total_alcool_vs_qualidade}
-qplot(alcohol, data = red_wine_quality, binwidth = .05, fill = as.factor(quality.classification)) +
+```{r Bivariate_Plots_alcool_vs_qualidade}
+qplot(alcohol, 
+      data = red_wine_quality, 
+      binwidth = .1, 
+      fill = as.factor(quality.classification)) +
   coord_cartesian() +
-  labs(fill = "Qualidade") +
+  labs(fill = lbl_qualidade_cls) +
+  scale_x_continuous(breaks = seq(0,15,.5))+
+  scale_y_continuous(breaks = seq(0,300,10)) +
   xlab(labels_graphs_variables[11]) +
+  ylab(lbl_qtd_registros) +
   guides(fill = guide_legend(reverse = T)) +
   ggtitle('Alcool pela classificação de qualidade')
-with(red_wine_quality, by(alcohol, quality.classification, summary))
-with(red_wine_quality, by(alcohol, quality.classification, length))
+
+with(red_wine_quality, 
+     by(alcohol, 
+        quality.classification, 
+        summary))
+
+with(red_wine_quality, 
+     by(alcohol, 
+        quality.classification, 
+        length))
 ```
 
 ```{r Bivariate_Plots_densidade_vs_qualidade}
-qplot(density, data = red_wine_quality, binwidth = .0002, fill = as.factor(quality.classification)) +
+qplot(density, 
+      data = red_wine_quality, 
+      binwidth = .0003, 
+      fill = as.factor(quality.classification)) +
   coord_cartesian() +
-  labs(fill = "Qualidade") +
+  labs(fill = lbl_qualidade_cls) +
   xlab(labels_graphs_variables[8]) +
+  ylab(lbl_qtd_registros) +
+  scale_x_continuous(breaks = seq(0,1.0037,0.0015))+
+  scale_y_continuous(breaks = seq(0,200,5)) +
   guides(fill = guide_legend(reverse = T)) +
   ggtitle('Densidade pela classificação de qualidade')
+
 with(red_wine_quality, by(density, quality.classification, summary))
 with(red_wine_quality, by(density, quality.classification, length))
 ```
 
 ```{r Bivariate_Plots_acidez_total_vs_qualidade}
-qplot(total.acidity, data = red_wine_quality, binwidth = .08, fill = as.factor(quality.classification)) +
+qplot(total.acidity, 
+      data = red_wine_quality, 
+      binwidth = .2, 
+      fill = as.factor(quality.classification)) +
   coord_cartesian() +
-  labs(fill = "Qualidade") +
+  labs(fill = lbl_qualidade_cls) +
   xlab(labels_graphs_variables[13]) +
+  ylab(lbl_qtd_registros) +
+  scale_x_continuous(breaks = seq(0,18,1))+
+  scale_y_continuous(breaks = seq(0,150,5)) +
   guides(fill = guide_legend(reverse = T)) +
   ggtitle('Acidez Total pela classificação de qualidade')
+
 with(red_wine_quality, by(total.acidity, quality.classification, summary))
 with(red_wine_quality, by(total.acidity, quality.classification, length))
 ```
 
 ```{r Bivariate_Plots_sulfatos_vs_qualidade}
-qplot(sulphates, data = red_wine_quality, binwidth = .01, fill = as.factor(quality.classification)) +
+qplot(sulphates, 
+      data = red_wine_quality, 
+      binwidth = .03, 
+      fill = as.factor(quality.classification)) +
   coord_cartesian() +
-  labs(fill = "Qualidade") +
+  labs(fill = lbl_qualidade_cls) +
   xlab(labels_graphs_variables[10]) +
+  ylab(lbl_qtd_registros) +
+  scale_x_continuous(breaks = seq(0,2,0.1)) +
+  scale_y_continuous(breaks = seq(0,180,10)) +
   guides(fill = guide_legend(reverse = T)) +
   ggtitle('Sulfatos pela classificação de qualidade')
+
 with(red_wine_quality, by(sulphates, quality.classification, summary))
 with(red_wine_quality, by(sulphates, quality.classification, length))
 ```
 
 ```{r Bivariate_Plots_dioxido_enxofre_total_vs_qualidade}
-qplot(total.sulfur.dioxide, data = red_wine_quality, binwidth = 3, fill = as.factor(quality.classification)) +
+qplot(total.sulfur.dioxide, 
+      data = red_wine_quality, 
+      binwidth = 4, 
+      fill = as.factor(quality.classification)) +
   coord_cartesian() +
-  labs(fill = "Qualidade") +
+  labs(fill = lbl_qualidade_cls) +
   xlab(labels_graphs_variables[7]) +
+  ylab(lbl_qtd_registros) +
+  scale_x_continuous(breaks = seq(0,300,15)) +
+  scale_y_continuous(breaks = seq(0,180,10)) +
   guides(fill = guide_legend(reverse = T)) +
   ggtitle('Dióxido de enxofre total pela classificação de qualidade')
+
 with(red_wine_quality, by(total.sulfur.dioxide, quality.classification, summary))
 with(red_wine_quality, by(total.sulfur.dioxide, quality.classification, length))
 ```
@@ -711,13 +906,18 @@ with(red_wine_quality, by(total.sulfur.dioxide, quality.classification, length))
 # Seção de Gráficos Multivariados
 
 ```{r Multivariate_Plots_densidade_vs_alcool_com_qualidade}
-ggplot(aes(x = density, y = alcohol, color = as.factor(quality.classification)), data = red_wine_quality) +
+ggplot(aes(x = density, 
+           y = alcohol, 
+           color = as.factor(quality.classification)), 
+       data = red_wine_quality) +
   geom_point(alpha = 0.5, size = 1, position = 'jitter') +
   coord_cartesian(xlim = c(quantile(red_wine_quality$density, .01),
                            quantile(red_wine_quality$density, .99))) +
-  labs(color = "Qualidade") +
+  labs(color = lbl_qualidade_cls) +
   xlab(labels_graphs_variables[8]) +
   ylab(labels_graphs_variables[11]) +
+  scale_x_continuous(breaks = seq(0.900,1.010,0.001)) +
+  scale_y_continuous(breaks = seq(0,15,.5)) +
   geom_smooth(method = "lm", se = FALSE) +
   ggtitle('Alcool pela Densidade com a Qualidade')
 ```
@@ -725,59 +925,80 @@ ggplot(aes(x = density, y = alcohol, color = as.factor(quality.classification)),
 > Aqui podemos ver que com valores com maior qualidade, os valores de densidade pelo álcool parecem estar no canto esquerdo do gráfico e com os valores mais baixos, observando o gráfico se entende que a concentração de baixa qualidade esta com a quantidade menor de alcool, assim como a densidade esta dispersa
 
 ```{r Multivariate_Plots_acidez_total_vs_alcool_com_qualidade}
-ggplot(aes(x = total.acidity, y = alcohol, color = as.factor(quality.classification)), data = red_wine_quality) +
+ggplot(aes(x = total.acidity, 
+           y = alcohol, 
+           color = as.factor(quality.classification)), 
+       data = red_wine_quality) +
   geom_point(alpha = 0.5, size = 1, position = 'jitter') +
   coord_cartesian(xlim = c(quantile(red_wine_quality$total.acidity, .01),
                            quantile(red_wine_quality$total.acidity, .99))) +
-  labs(color = "Qualidade") +
+  labs(color = lbl_qualidade_cls) +
   xlab(labels_graphs_variables[13]) +
   ylab(labels_graphs_variables[11]) +
+  scale_x_continuous(breaks = seq(5,18,.5))+
+  scale_y_continuous(breaks = seq(0,15,.5)) +
   geom_smooth(method = "lm", se = FALSE) +
   ggtitle('Alcool pela Acidez Total com a Qualidade')
 ```
 
 
 ```{r Multivariate_Plots_alcool_vs_sulfatos_com_qualidade}
-ggplot(aes(x = alcohol, y = sulphates, color = as.factor(quality.classification)), data = red_wine_quality) +
+ggplot(aes(x = alcohol, y = sulphates, color = as.factor(quality.classification)), 
+       data = red_wine_quality) +
   geom_point(alpha = 0.5, size = 1, position = 'jitter') +
   coord_cartesian(xlim = c(quantile(red_wine_quality$alcohol, .01),
                            quantile(red_wine_quality$alcohol, .99))) +
-  labs(color = "Qualidade") +
+  labs(color = lbl_qualidade_cls) +
   xlab(labels_graphs_variables[11]) +
   ylab(labels_graphs_variables[10]) +
+  scale_x_continuous(breaks = seq(0,15,.5))+
+  scale_y_continuous(breaks = seq(0,2,.1)) +
   geom_smooth(method = "lm", se = FALSE) +
   ggtitle('Alcool pelo Sulfato com a Qualidade')
 ```
 
 ```{r Multivariate_Plots_alcool_vs_dioxido_enxofre_total_com_qualidade}
-ggplot(aes(x = alcohol, y = total.sulfur.dioxide, color = as.factor(quality.classification)), data = red_wine_quality) +
+ggplot(aes(x = alcohol, 
+           y = total.sulfur.dioxide, 
+           color = as.factor(quality.classification)), 
+       data = red_wine_quality) +
   geom_point(alpha = 0.5, size = 1, position = 'jitter') +
   coord_cartesian(xlim = c(quantile(red_wine_quality$alcohol, .01),
                            quantile(red_wine_quality$alcohol, .99))) +
-  labs(color = "Qualidade") +
+  labs(color = lbl_qualidade_cls) +
   xlab(labels_graphs_variables[11]) +
   ylab(labels_graphs_variables[7]) +
+  scale_x_continuous(breaks = seq(0,20,.5))+
+  scale_y_continuous(breaks = seq(0,300,15)) +
   geom_smooth(method = "lm", se = FALSE) +
   ggtitle('Alcool pelo Dióxido de Enxofre Total com a Qualidade')
 ```
 
 ```{r Multivariate_Plots_quality_vs_density_com_alcool}
-ggplot(aes(x = quality.factor, y = density, colour = alcohol), data = red_wine_quality) +
+ggplot(aes(x = quality, 
+           y = density, 
+           colour = alcohol), 
+       data = red_wine_quality) +
   geom_point(position = 'jitter') +
-  coord_cartesian(xlim = c(0, quantile(red_wine_quality$alcohol, .95))) +
   labs(color = "Álcool") +
-  xlab(labels_graphs_variables[13]) +
+  scale_y_continuous(breaks = seq(0.00,2.00,.001)) +
+  xlab(labels_graphs_variables[12]) +
   ylab(labels_graphs_variables[8]) +
   ggtitle('Qualidade vs Densidade pelo Alcool')
 ```
 
 
 ```{r Multivariate_Plots_sulfato_vs_density_por_qualidade_com_alcool}
-ggplot(aes(x = sulphates, y = density, colour = alcohol), data = red_wine_quality) +
+ggplot(aes(x = sulphates, 
+           y = density, 
+           colour = alcohol), 
+       data = red_wine_quality) +
   geom_point(position = 'jitter') +
   coord_cartesian() +
   facet_wrap(~quality.classification) +
   labs(color = "Álcool") +
+  scale_x_continuous(breaks = seq(0,2,0.1)) +
+  scale_y_continuous(breaks = seq(0,2,.001)) +
   xlab(labels_graphs_variables[10]) +
   ylab(labels_graphs_variables[8]) +
   ggtitle('Sulfatos vs Densidade agrupado pela qualidade e alfa pelo Alcool')
@@ -786,7 +1007,9 @@ ggplot(aes(x = sulphates, y = density, colour = alcohol), data = red_wine_qualit
 > Regressão Linear
 
 ```{r regressao_linear}
-linear_quality = lm(quality ~ alcohol+density+fixed.acidity+volatile.acidity+citric.acid+sulphates+total.sulfur.dioxide, data=red_wine_quality)
+linear_quality = lm(quality ~ alcohol+density+fixed.acidity+volatile.acidity+citric.acid+sulphates+total.sulfur.dioxide, 
+                    data=red_wine_quality)
+
 summary(linear_quality)
 ```
 
@@ -796,7 +1019,8 @@ summary(linear_quality)
 
 ```{r arvore_de_decisa}
 
-tree <- rpart(quality.classification ~ alcohol+density+fixed.acidity+volatile.acidity+citric.acid+sulphates+total.sulfur.dioxide, data = red_wine_quality, method="class")
+tree <- rpart(quality.classification ~ alcohol+density+fixed.acidity+volatile.acidity+citric.acid+sulphates+total.sulfur.dioxide, 
+              data = red_wine_quality, method="class")
 summary(tree)
 rpart.plot(tree)
 pred2 <- predict(tree,newdata=red_wine_quality,type="class")
@@ -836,13 +1060,20 @@ perc.acerto #acerto
 # Gráficos Finais e descrições
 
 ### Primeiro Gráfico
+
+> __Alcool pela classificação de qualidade__
+
 ```{r Primeiro Grafico Final Bivariate_Plots_total_alcool_vs_qualidade}
-qplot(alcohol, data = red_wine_quality, binwidth = .05, fill = as.factor(quality.classification)) +
+qplot(alcohol, 
+      data = red_wine_quality, 
+      binwidth = .1, 
+      fill = as.factor(quality.classification)) +
   coord_cartesian() +
-  labs(fill = "Qualidade") +
+  labs(fill = lbl_qualidade_cls) +
+  scale_x_continuous(breaks = seq(0,15,.5))+
+  scale_y_continuous(breaks = seq(0,300,10)) +
   xlab(labels_graphs_variables[11]) +
-  guides(fill = guide_legend(reverse = T)) +
-  ggtitle('Alcool pela classificação de qualidade')
+  ylab(lbl_qtd_registros) 
 ```
 
 ### Descrição do Primeiro Gráfico
@@ -853,43 +1084,87 @@ De acordo com o que observamos no gráfico acima quanto mais álcool mais saboro
 Sempre na medida, o álcool é bastante importante para preservar a essência do vinho, tanto enquanto bebida, como um fator sociável de quem o aprecia. Sua presença e influência no sabor macio e adocicado de um vinho sempre será na proporção contrária da presença ácida e tanina que um tipo vinícola pode ter.
 
 ### Segundo Gráfico
-```{r Segundo Grafico Final arvore_de_decisa}
-tree <- rpart(quality.classification ~ alcohol+density+fixed.acidity+volatile.acidity+citric.acid+sulphates+total.sulfur.dioxide, data = red_wine_quality, method="class")
-rpart.plot(tree)
-pred2 <- predict(tree,newdata=red_wine_quality,type="class")
-matriz.de.confusao<- table(red_wine_quality$quality.classification,pred2)
-```
 
-### Descrição do Segundo Gráfico
+> __Alcool pela Acidez Total com a Qualidade__
 
-> Conforme observado no gráfico acima, segundo as 5 variáveis com maior importância (alcohol, sulphates, density, volatile.acidity e citric.acid) o álcool tem uma grande parcela na divisão destes itens importantes (quase 50% no total).
-Sempre na medida, o álcool é bastante importante para preservar a essência do vinho, tanto enquanto bebida, como um fator sociável de quem o aprecia. Sua presença e influência no sabor macio e adocicado de um vinho sempre será na proporção contrária da presença ácida e tanina que um tipo vinícola pode ter. Tanto que a acidez é colocada no gráfico como um item importante na divisão entre os tipos de sulfatos (não alcóolicos) demonstrado acima. 
-Um bom vinho, seja ele branco ou tinto, sempre terá uma acidez equilibrada. 
-
-### Terceiro Gráfico
 ```{r Terceiro Grafico Final Multivariate_Plots_acidez_total_vs_alcool_com_qualidade}
-ggplot(aes(x = total.acidity, y = alcohol, color = as.factor(quality.classification)), data = red_wine_quality) +
+ggplot(aes(x = total.acidity, 
+           y = alcohol, 
+           color = as.factor(quality.classification)), 
+       data = red_wine_quality) +
   geom_point(alpha = 0.5, size = 1, position = 'jitter') +
   coord_cartesian(xlim = c(quantile(red_wine_quality$total.acidity, .01),
                            quantile(red_wine_quality$total.acidity, .99))) +
-  labs(color = "Qualidade") +
+  scale_x_continuous(breaks = seq(5,18,.8)) +
+  scale_y_continuous(breaks = seq(0,15,.5)) +
+  labs(color = lbl_qualidade_cls) +
   xlab(labels_graphs_variables[13]) +
   ylab(labels_graphs_variables[11]) +
-  geom_smooth(method = "lm", se = FALSE) +
-  ggtitle('Alcool pela Acidez Total com a Qualidade')
+  geom_smooth(method = "lm", se = FALSE)
 ```
 
-### Descrição do Terceiro Gráfico
+### Descrição do Segundo Gráfico
 
 > Este último gráfico analisamos duas qualidades para o vinho: a vermelha para uma qualidade de um vinho Bom e a verde para uma qualidade Ruim. 
 Para vinhos de qualidade boa, quanto menor for a acidez, maior será o grau alcóolico em sua composição.
 Já para os vinhos considerados ruins esse número permaneceu na média. 
 Lembramos que analisamos a qualidade com variáveis na forma de vetores multivariados. 
-Os vetores multivariados, na estatística, correspondem a observações multivariadas compostas de uma coleção de p variáveis sobre n medidas diferentes tomadasdo mesmo experimento. No gráfico podemos observar que a média de cada variável (média correspondente a cada linha da matriz de dados original) será representada por um elemento de um novo vetor, chamado de vetor de médias.
+Os vetores multivariados, na estatística, correspondem a observações multivariadas compostas de uma coleção de p variáveis sobre n medidas diferentes tomadas do mesmo experimento. No gráfico podemos observar que a média de cada variável (média correspondente a cada linha da matriz de dados original) será representada por um elemento de um novo vetor, chamado de vetor de médias.
+
+### Terceiro Gráfico
+
+> __Arvore de Decisão__
+
+```{r Segundo Grafico Final arvore_de_decisa}
+tree <- rpart(quality.classification ~ alcohol+density+fixed.acidity+volatile.acidity+citric.acid+sulphates+total.sulfur.dioxide, 
+              data = red_wine_quality, method="class")
+rpart.plot(tree)
+pred2 <- predict(tree,newdata=red_wine_quality,type="class")
+matriz.de.confusao<- table(red_wine_quality$quality.classification,pred2)
+```
+
+### Descrição do Terceiro Gráfico
+
+> Conforme observado no gráfico acima, segundo as 5 variáveis com maior importância (alcohol, sulphates, density, volatile.acidity e citric.acid) o álcool tem uma grande parcela na divisão destes itens importantes (quase 50% no total).
+Sempre na medida, o álcool é bastante importante para preservar a essência do vinho, tanto enquanto bebida, como um fator sociável de quem o aprecia. Sua presença e influência no sabor macio e adocicado de um vinho sempre será na proporção contrária da presença ácida e tanina que um tipo vinícola pode ter. Tanto que a acidez é colocada no gráfico como um item importante na divisão entre os tipos de sulfatos (não alcóolicos) demonstrado acima. 
+Um bom vinho, seja ele branco ou tinto, sempre terá uma acidez equilibrada.
 
 ------
 
 # Reflexão
 
-> O que pudemos aprender com esta análise é que vinhos com graduações alcoólicas semelhantes também terão perfis parecidos. É claro que eles não serão exatamente os mesmos, mas certamente estão inseridos em grupos bastante próximos uns aos outros. 
+> O conjunto de dados posuem 1599 amostras de vinhos tintos com 13 variaveis de 2009, comecei entenendo cada variavel individualmente com uma analise univariavel, após isso continuei uma analise tendendo o entendimento o comportamento das variáveis com relação com a variavel target "qualidade", observando os dados e os gráficos, por fim criei um modelo linear e uma arvore de decisão para melhor explicar os dados.
+
+> O que pude aprender com esta análise e com estudo de materiais externos é que vinhos com graduações alcoólicas semelhantes também terão perfis parecidos. É claro que eles não serão exatamente os mesmos, mas certamente estão inseridos em grupos bastante próximos uns aos outros. 
 A graduação alcoólica de um vinho é um ponto importante a ser considerado ao avaliar sua qualidade. O equilíbrio perfeito entre ela e todas as nuances de sabores e aromas, além de acidez e presença de taninos é o que fazem um bom rótulo. Por isso lembre-se de levar todos esses quesitos em consideração para tomar a decisão mais rica possível.
+
+> Entendo que com esta analise tive sucesso com a abordagem que os dados cítricos e a quantidade alcoólica pode influênciar na qualidade do vinho tinto, porém para trabalhos futuros, deveriam ter mais amostras balanceadas com qualidade entre 1 a 10 pois a concentração da qualidade ficaram entre 5 e 7 sendo assim a avaliação ficou muito tendenciosa.
+
+
+# Bibliografia:
+
+__DataSet:__
+
+https://docs.google.com/document/d/1jX3vzkFuFOBGUrlcQ_Lc3jEZVlC_2yyk3tFIbwAI5GQ/edit
+https://www.kaggle.com/uciml/red-wine-quality-cortez-et-al-2009
+
+__Exemplos Udacity__
+
+http://adv-r.had.co.nz/Style.html
+https://s3.amazonaws.com/content.udacity-data.com/courses/ud651/diamondsExample_2016-05.html
+
+__Revisas e temas sobre vinho:__
+
+https://www.clubedosvinhos.com.br/acidez-no-vinho-nao-tema/
+https://revistaadega.uol.com.br/artigo/o-alcool-e-a-acidez_6055.html
+https://revistaadega.uol.com.br/artigo/a-importancia-do-ph-no-vinho_1552.html
+
+__R documentation:__
+
+https://ggplot2.tidyverse.org/reference/
+
+__Materiais Adicionais:__
+
+Apostilas do MBA De Machine Learning e Inteligencia Artificial da Universidade FIAP de:
+R para Inteligencia Artificial
+Estatistica para inteligencia artificial
