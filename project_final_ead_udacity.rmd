@@ -833,31 +833,63 @@ perc.acerto #acerto
 
 ------
 
-# Gráficos Finais e descricoes
+# Gráficos Finais e descrições
 
 ### Primeiro Gráfico
-```{r Plot_One}
+```{r Primeiro Grafico Final Bivariate_Plots_total_alcool_vs_qualidade}
+qplot(alcohol, data = red_wine_quality, binwidth = .05, fill = as.factor(quality.classification)) +
+  coord_cartesian() +
+  labs(fill = "Qualidade") +
+  xlab(labels_graphs_variables[11]) +
+  guides(fill = guide_legend(reverse = T)) +
+  ggtitle('Alcool pela classificação de qualidade')
 ```
 
 ### Descrição do Primeiro Gráfico
 
+> Quando falamos de qualidade em vinho, temos que levar em consideração uma infinidade de sabores, consistência, aroma, cores e longevidade. No entanto, há apreciadores que defendem a ideia de que o teor alcoólico é o grande medidor para afirmar se um vinho é bom ou não. 
+O vinho é composto por mais de 400 substâncias, entre elas o álcool que é o resultado da fermentação entre a glicose e a frutose das uvas. 
+De acordo com o que observamos no gráfico acima quanto mais álcool mais saboroso e com uma qualidade maior será o vinho.
+Sempre na medida, o álcool é bastante importante para preservar a essência do vinho, tanto enquanto bebida, como um fator sociável de quem o aprecia. Sua presença e influência no sabor macio e adocicado de um vinho sempre será na proporção contrária da presença ácida e tanina que um tipo vinícola pode ter.
 
 ### Segundo Gráfico
-```{r Plot_Two}
-
+```{r Segundo Grafico Final arvore_de_decisa}
+tree <- rpart(quality.classification ~ alcohol+density+fixed.acidity+volatile.acidity+citric.acid+sulphates+total.sulfur.dioxide, data = red_wine_quality, method="class")
+rpart.plot(tree)
+pred2 <- predict(tree,newdata=red_wine_quality,type="class")
+matriz.de.confusao<- table(red_wine_quality$quality.classification,pred2)
 ```
 
 ### Descrição do Segundo Gráfico
 
+> Conforme observado no gráfico acima, segundo as 5 variáveis com maior importância (alcohol, sulphates, density, volatile.acidity e citric.acid) o álcool tem uma grande parcela na divisão destes itens importantes (quase 50% no total).
+Sempre na medida, o álcool é bastante importante para preservar a essência do vinho, tanto enquanto bebida, como um fator sociável de quem o aprecia. Sua presença e influência no sabor macio e adocicado de um vinho sempre será na proporção contrária da presença ácida e tanina que um tipo vinícola pode ter. Tanto que a acidez é colocada no gráfico como um item importante na divisão entre os tipos de sulfatos (não alcóolicos) demonstrado acima. 
+Um bom vinho, seja ele branco ou tinto, sempre terá uma acidez equilibrada. 
 
 ### Terceiro Gráfico
-```{r Plot_Three}
-
+```{r Terceiro Grafico Final Multivariate_Plots_acidez_total_vs_alcool_com_qualidade}
+ggplot(aes(x = total.acidity, y = alcohol, color = as.factor(quality.classification)), data = red_wine_quality) +
+  geom_point(alpha = 0.5, size = 1, position = 'jitter') +
+  coord_cartesian(xlim = c(quantile(red_wine_quality$total.acidity, .01),
+                           quantile(red_wine_quality$total.acidity, .99))) +
+  labs(color = "Qualidade") +
+  xlab(labels_graphs_variables[13]) +
+  ylab(labels_graphs_variables[11]) +
+  geom_smooth(method = "lm", se = FALSE) +
+  ggtitle('Alcool pela Acidez Total com a Qualidade')
 ```
+
 ### Descrição do Terceiro Gráfico
+
+> Este último gráfico analisamos duas qualidades para o vinho: a vermelha para uma qualidade de um vinho Bom e a verde para uma qualidade Ruim. 
+Para vinhos de qualidade boa, quanto menor for a acidez, maior será o grau alcóolico em sua composição.
+Já para os vinhos considerados ruins esse número permaneceu na média. 
+Lembramos que analisamos a qualidade com variáveis na forma de vetores multivariados. 
+Os vetores multivariados, na estatística, correspondem a observações multivariadas compostas de uma coleção de p variáveis sobre n medidas diferentes tomadasdo mesmo experimento. No gráfico podemos observar que a média de cada variável (média correspondente a cada linha da matriz de dados original) será representada por um elemento de um novo vetor, chamado de vetor de médias.
 
 ------
 
 # Reflexão
 
-
+> O que pudemos aprender com esta análise é que vinhos com graduações alcoólicas semelhantes também terão perfis parecidos. É claro que eles não serão exatamente os mesmos, mas certamente estão inseridos em grupos bastante próximos uns aos outros. 
+A graduação alcoólica de um vinho é um ponto importante a ser considerado ao avaliar sua qualidade. O equilíbrio perfeito entre ela e todas as nuances de sabores e aromas, além de acidez e presença de taninos é o que fazem um bom rótulo. Por isso lembre-se de levar todos esses quesitos em consideração para tomar a decisão mais rica possível.
